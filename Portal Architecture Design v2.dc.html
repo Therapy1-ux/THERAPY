@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Open+Sans:wght@400;600;700&family=Marcellus&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#EEE5D2;-webkit-font-smoothing:antialiased}a{text-decoration:none;color:#7C5B38}a:hover{color:#4E361F}::selection{background:#9c7a57;color:#F2ECE3}</style>
+</helmet>
+<div style="font-family:'Open Sans',sans-serif;color:#31261D;background:linear-gradient(160deg,#EEE5D2 0%,#E1D3B4 55%,#D3C29A 100%);min-height:100vh">
+<header style="background:linear-gradient(150deg,#3A2A1B 0%,#241A11 55%,#140D07 100%);border-bottom:1px solid rgba(227,185,140,0.22);padding:22px 28px"><div style="max-width:1100px;margin:0 auto;display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap"><span style="font-family:'Marcellus',serif;letter-spacing:0.08em;color:#E3B98C;font-size:18px">THERAPY™</span><span style="font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#C7A876">Technical design v2 · THERAPY as system of record · For approval</span></div></header>
+
+<main style="max-width:1100px;margin:0 auto;padding:52px 28px 96px;display:flex;flex-direction:column;gap:36px">
+<div><div style="font-size:12px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8A7B6B;margin-bottom:10px">One THERAPY identity · one governed data foundation · multiple controlled interfaces · replaceable integrations</div>
+<h1 style="font-family:'Cormorant Garamond',serif;font-weight:500;font-size:clamp(34px,4.5vw,52px);line-height:1.02;margin:0;max-width:16em">Platform architecture v2 — THERAPY is the client system of record.</h1>
+<p style="font-size:15px;line-height:1.7;color:#5F5347;margin:16px 0 0;max-width:48em">Revision of <a href="Portal Architecture Design.dc.html">v1</a> per the architecture correction: Momence is no longer treated as CRM or master identity. It becomes an external transactional service — bookings, availability, scheduling, payments, membership billing — behind a replaceable integration. Nothing implemented; this supersedes v1's source-of-truth map, data boundaries, Momence integration and roadmap.</p></div>
+
+<section style="background:linear-gradient(150deg,#5C452F 0%,#33261A 55%,#160E07 100%);color:#F2ECE3;border-radius:14px;padding:32px">
+<h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;margin:0 0 14px;color:#F5EDE1">1 · Core principle (the correction)</h2>
+<div style="font-size:13.5px;line-height:1.85;color:#E6DFD4">
+<p style="margin:0 0 12px"><strong style="color:#E3B98C">THERAPY owns the platform and the client relationship. External vendors provide replaceable services.</strong> The THERAPY platform holds the permanent <strong style="color:#E3B98C">person_id</strong> and everything governed under it: identity &amp; authentication, profile &amp; contact details, consents &amp; comms preferences, intake, questionnaires, assessments, goals, progress, clinician-approved health information, longitudinal Health Memory, wearable data, biomarkers/pathology, program participation, recommendations, communications history, staff follow-ups, clinical information under permission — and the future Seasons relationship.</p>
+<p style="margin:0 0 12px"><strong style="color:#E3B98C">Momence's role shrinks to transactions:</strong> appointment availability, scheduling/bookings, payments, membership billing. It exchanges only what those functions need. It is never the master identity and never a health/client database.</p>
+<p style="margin:0"><strong style="color:#E3B98C">Replaceability test:</strong> if Momence is swapped out, THERAPY replaces one integration adapter — no data migration, no core-platform rebuild. Every design decision below must pass this test. (What changed from v1: v1 made Momence the identity and contact master with the portal "keyed to Momence customer ID". That inverted the dependency — reversed here.)</p></div></section>
+
+<section style="background:#FCF7EF;border:1px solid rgba(49,38,29,0.12);border-radius:14px;padding:32px">
+<h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;margin:0 0 14px">2 · Identity — THERAPY person_id ↔ Momence customer_id</h2>
+<div style="font-size:13.5px;line-height:1.8;color:#5F5347">
+<p style="margin:0 0 12px">The <strong>person_id</strong> is minted and owned by THERAPY at first consented interaction and never changes. External systems attach to it through an <strong>external-references domain</strong>: person_id → (system, external_id, linked_at, status). Momence's customer_id is the first such reference; Outlook contacts, wearable accounts, a future Seasons profile and any Momence replacement are all just more rows.</p>
+<div style="background:#31261D;color:#E8C9A6;border-radius:10px;padding:18px 22px;font-family:ui-monospace,monospace;font-size:12.5px;line-height:2">THERAPY person_id&nbsp;&nbsp;↔&nbsp;&nbsp;external Momence customer_id<br>THERAPY Platform → read availability from Momence<br>THERAPY Platform → create / read / update bookings (where supported)<br>THERAPY Platform ← appointment status events<br>THERAPY Platform ← payment / membership transaction status</div>
+<p style="margin:12px 0 0"><strong>Authentication is ours</strong> (email magic-link at MVP, passkeys later) against the THERAPY identity domain — clients never log into Momence. Linking: on account creation we match/create the Momence customer via API and store the reference; unmatched or ambiguous cases queue for staff resolution rather than auto-merging.</p></div></section>
+
+<section style="background:linear-gradient(160deg,#43342A 0%,#241A11 70%,#160E07 100%);color:#E6DFD4;border:1px solid rgba(227,185,140,0.3);border-radius:14px;padding:32px">
+<h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;margin:0 0 16px;color:#F5EDE1">3 · Data architecture — ten governed domains, not one database</h2>
+<p style="font-size:13.5px;line-height:1.8;color:#E6DFD4;margin:0 0 16px">"THERAPY owns the client data" ≠ one unrestricted store. Ten bounded domains, each with its own access rules; role-based access and least privilege apply across all of them, and every sensitive read is logged.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;font-size:12.5px;line-height:1.7">
+<div style="border:1px solid rgba(227,185,140,0.35);border-radius:10px;padding:14px 16px"><strong style="color:#E3B98C">1 · Identity &amp; authentication</strong><br>person_id, credentials, sessions, MFA. Readable by almost nothing; auth service only.</div>
+<div style="border:1px solid rgba(227,185,140,0.35);border-radius:10px;padding:14px 16px"><strong style="color:#E3B98C">2 · Client profile</strong><br>Name, contact, preferences, demographics. Client-editable; broad staff read, audited write.</div>
+<div style="border:1px solid rgba(227,185,140,0.35);border-radius:10px;padding:14px 16px"><strong style="color:#E3B98C">3 · Clinical / Health Memory</strong><br>Notes, observations, longitudinal record spine. Clinical roles scoped to assigned clients; client sees only clinician-published records.</div>
+<div style="border:1px solid rgba(227,185,140,0.35);border-radius:10px;padding:14px 16px"><strong style="color:#E3B98C">4 · Communications</strong><br>Conversation store (per comms design), staff follow-ups. Reception + assigned staff; never joined to domain 3 without permission.</div>
+<div style="border:1px solid rgba(227,185,140,0.35);border-radius:10px;padding:14px 16px"><strong style="color:#E3B98C">5 · Consent &amp; permissions</strong><br>Versioned consent ledger, comms preferences, sharing grants. Append-only; gates reads across all other domains.</div>
+<div style="border:1px solid rgba(227,185,140,0.35);border-radius:10px;padding:14px 16px"><strong style="color:#E3B98C">6 · Wearables &amp; integrations</strong><br>Device links, OAuth tokens, normalised metrics feeding domain 3. Entitlement-gated (insights.wearables).</div>
+<div style="border:1px solid rgba(227,185,140,0.35);border-radius:10px;padding:14px 16px"><strong style="color:#E3B98C">7 · Assessments &amp; biomarkers</strong><br>Questionnaires, pathology, scans, scores. Clinical governance rules of domain 3; publication is an explicit act.</div>
+<div style="border:1px solid rgba(227,185,140,0.35);border-radius:10px;padding:14px 16px"><strong style="color:#E3B98C">8 · Audit logs</strong><br>Immutable access + change log across every domain. Write-only for services; compliance-role read.</div>
+<div style="border:1px solid rgba(227,185,140,0.35);border-radius:10px;padding:14px 16px"><strong style="color:#E3B98C">9 · External system references</strong><br>person_id ↔ external ids (Momence, wearables, Seasons…). The only place vendor ids exist.</div>
+<div style="border:1px solid rgba(227,185,140,0.35);border-radius:10px;padding:14px 16px"><strong style="color:#E3B98C">10 · Booking / payment references</strong><br>Read-model mirror of Momence bookings &amp; transaction status, provenance-tagged, rebuildable from the vendor at any time. Never the ledger of record for money.</div>
+</div></section>
+
+<section style="background:#FCF7EF;border:1px solid rgba(49,38,29,0.12);border-radius:14px;padding:32px">
+<h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;margin:0 0 14px">4 · Source-of-truth map (revised)</h2>
+<div style="display:grid;gap:0;font-size:13.5px">
+<div style="display:grid;grid-template-columns:230px 1fr;gap:14px;padding:10px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong>Identity &amp; authentication</strong><span style="color:#5F5347"><strong>THERAPY</strong> — person_id is master; Momence customer_id is a reference (domain 9)</span></div>
+<div style="display:grid;grid-template-columns:230px 1fr;gap:14px;padding:10px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong>Profile &amp; contact details</strong><span style="color:#5F5347"><strong>THERAPY</strong> — edited in our platform; pushed to Momence only as needed for its transactional functions</span></div>
+<div style="display:grid;grid-template-columns:230px 1fr;gap:14px;padding:10px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong>Availability &amp; scheduling</strong><span style="color:#5F5347">Momence — read via integration; displayed inside the THERAPY experience</span></div>
+<div style="display:grid;grid-template-columns:230px 1fr;gap:14px;padding:10px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong>Bookings</strong><span style="color:#5F5347">Momence executes; <strong>THERAPY initiates</strong> and mirrors status into domain 10</span></div>
+<div style="display:grid;grid-template-columns:230px 1fr;gap:14px;padding:10px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong>Payments &amp; membership billing</strong><span style="color:#5F5347">Momence — money never touches our stack; transaction status events drive entitlements</span></div>
+<div style="display:grid;grid-template-columns:230px 1fr;gap:14px;padding:10px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong>Entitlements</strong><span style="color:#5F5347"><strong>THERAPY</strong> — keyed to person_id (not customer_id); billing events are one grant source among several</span></div>
+<div style="display:grid;grid-template-columns:230px 1fr;gap:14px;padding:10px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong>Consents, forms, intake, questionnaires</strong><span style="color:#5F5347"><strong>THERAPY</strong> — versioned, audited, granular (Momence intake may bridge Phase 1 only, then migrates in)</span></div>
+<div style="display:grid;grid-template-columns:230px 1fr;gap:14px;padding:10px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong>Clinical notes, Health Memory, wearables, biomarkers</strong><span style="color:#5F5347"><strong>THERAPY</strong> — governed domains 3/6/7; never in any vendor system</span></div>
+<div style="display:grid;grid-template-columns:230px 1fr;gap:14px;padding:10px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong>Communications history &amp; follow-ups</strong><span style="color:#5F5347"><strong>THERAPY</strong> — comms domain; Outlook/SMS providers are transport, not storage of record</span></div>
+<div style="display:grid;grid-template-columns:230px 1fr;gap:14px;padding:10px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong>Programs, goals, progress, recommendations</strong><span style="color:#5F5347"><strong>THERAPY</strong> — client-facing only via the clinician-publication act</span></div>
+</div>
+<p style="font-size:13px;line-height:1.7;color:#5F5347;margin:14px 0 0">Rule unchanged: each fact lives in exactly one system; everything else holds references. What changed: identity and contact moved from the Momence column to ours. <strong>New obligation this creates:</strong> a contact-sync policy — THERAPY is authoritative, changes write through to Momence via the adapter; Momence-side edits (front desk) surface as reconciliation events, never silently overwrite.</p></section>
+
+<section style="background:#FCF7EF;border:1px solid rgba(49,38,29,0.12);border-radius:14px;padding:32px">
+<h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;margin:0 0 14px">5 · Momence integration adapter</h2>
+<div style="font-size:13.5px;line-height:1.8;color:#5F5347">
+<p style="margin:0 0 10px">All Momence traffic goes through a single <strong>booking/payments adapter</strong> exposing a vendor-neutral interface to the rest of the platform: <em>getAvailability, createBooking, updateBooking, cancelBooking, onAppointmentStatus, onTransactionStatus</em>. No other service imports the Momence API. Webhooks land in the adapter, are translated to platform events keyed by person_id (via domain 9), then fan out to entitlements, comms and the read-model.</p>
+<p style="margin:0 0 10px"><strong>Scope of exchange (least data):</strong> outbound — the minimum client fields Momence needs to hold a booking/payment (name, email/phone as required); inbound — availability, booking/appointment status, membership/payment transaction status. No health data, consents, notes, or preferences ever cross this boundary.</p>
+<p style="margin:0"><strong>Known constraint to verify in the sandbox:</strong> how far Momence's API supports create/update of bookings and payment initiation headlessly. Where it doesn't, the portal deep-links into a Momence-hosted step and returns the client to THERAPY on completion — an accepted Phase-1 seam, invisible-ish by styling and redirect, eliminated as API coverage allows.</p></div></section>
+
+<section style="background:#FCF7EF;border:1px solid rgba(49,38,29,0.12);border-radius:14px;padding:32px">
+<h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;margin:0 0 14px">6 · One experience — client and staff</h2>
+<div style="font-size:13.5px;line-height:1.8;color:#5F5347">
+<p style="margin:0 0 10px"><strong>Client:</strong> logs into THERAPY → dashboard → progress → membership → books an appointment. The booking is processed through the Momence adapter and the client returns to (or never leaves) the THERAPY experience. Which vendor performed which function is never the client's problem.</p>
+<p style="margin:0"><strong>Staff:</strong> the THERAPY Staff Portal is the primary surface for all client workflows — profile, history, follow-ups, comms, clinical view (permissioned). Momence, Outlook and other systems operate as integrations behind it; staff drop into a vendor UI only where the adapter can't yet perform the action, and each such seam is tracked as debt to close. Long-term objective: external systems disappear behind the THERAPY interface.</p></div></section>
+
+<section style="background:#FCF7EF;border:1px solid rgba(49,38,29,0.12);border-radius:14px;padding:32px">
+<h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;margin:0 0 14px">7 · Entitlements, Seasons, governance — carried forward</h2>
+<div style="font-size:13.5px;line-height:1.8;color:#5F5347">
+<p style="margin:0 0 10px"><strong>Entitlements</strong> (v1 §2) survive intact, re-keyed to person_id: one entitlements table, bundles (portal.base / member.core / tier keys / seasons.*), Momence transaction events grant/revoke automatically, staff grants audited, ~15 keys max in one reviewed config.</p>
+<p style="margin:0 0 10px"><strong>Seasons</strong> (v1 §5) unchanged and strengthened by this correction: Seasons is another controlled interface on the same THERAPY identity — shared login and wearable connections, separated clinical data, nothing shared cross-entity without its own consent event.</p>
+<p style="margin:0"><strong>Governance</strong> (v1 §6) unchanged: RBAC, least privilege, encryption, AU residency, immutable audit, consent ledger, retention controls; the specialist-confirmation list (Victorian Health Records Act, APP 11, retention minimums, AI-derived insights, Seasons entity structure) still gates the build. <strong>Raised stakes:</strong> owning identity/auth and contact data ourselves increases our security surface vs v1 — auth hardening and the audit domain move from "important" to "non-negotiable before any client login ships".</p></div></section>
+
+<section style="background:#FCF7EF;border:1px solid rgba(49,38,29,0.12);border-radius:14px;padding:32px">
+<h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;margin:0 0 16px">8 · Roadmap (revised)</h2>
+<div style="display:grid;gap:0;font-size:13.5px">
+<div style="display:grid;grid-template-columns:110px 1fr;gap:14px;padding:12px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong style="color:#7C5B38">Phase 0<br>(foundation)</strong><span style="color:#5F5347;line-height:1.7">Identity domain (person_id, auth) · external-references domain · consent ledger · audit log · Momence adapter skeleton with verified sandbox coverage (availability read, booking create, webhooks). This is the shared foundation both portal and comms plug into — built once, portal-first as previously agreed.</span></div>
+<div style="display:grid;grid-template-columns:110px 1fr;gap:14px;padding:12px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong style="color:#7C5B38">Phase 1<br>(portal MVP)</strong><span style="color:#5F5347;line-height:1.7">Client login (THERAPY auth) · profile (ours, write-through to Momence) · entitlements table · portal home answering the four questions — upcoming (adapter read), membership (transaction-status driven), next step (clinician follow-up text), progress placeholder · book-an-appointment via adapter (deep-link seam where API falls short) · trimmed five-feature base portal stands.</span></div>
+<div style="display:grid;grid-template-columns:110px 1fr;gap:14px;padding:12px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong style="color:#7C5B38">Phase 2</strong><span style="color:#5F5347;line-height:1.7">Forms/intake/consents migrate in-platform · documents · clinician-publication workflow · goals &amp; check-ins · Oura via aggregator (insights.wearables) · Staff Portal becomes primary staff surface with clinical internal view · comms layer plugs into the same foundation (conversation store keyed to person_id).</span></div>
+<div style="display:grid;grid-template-columns:110px 1fr;gap:14px;padding:12px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong style="color:#7C5B38">Future</strong><span style="color:#5F5347;line-height:1.7">Biomarker trends · nervous-system views · AI recommendations (clinician-approved) · corporate entitlements · Seasons namespace · deeper headless booking as Momence API allows — or a vendor swap through the adapter with zero core-platform change.</span></div>
+</div></section>
+
+<section style="background:linear-gradient(150deg,#5C452F 0%,#33261A 55%,#160E07 100%);color:#F2ECE3;border-radius:14px;padding:32px">
+<h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;margin:0 0 14px;color:#F5EDE1">9 · Honest costs of this correction</h2>
+<div style="font-size:13.5px;line-height:1.85;color:#E6DFD4">
+<p style="margin:0 0 12px"><strong style="color:#E3B98C">Phase 0 gets heavier.</strong> v1 borrowed Momence's identity to ship faster; v2 builds identity, auth, references, consent and audit before the first login. Roughly +2–4 weeks up front — bought back permanently in vendor independence.</p>
+<p style="margin:0 0 12px"><strong style="color:#E3B98C">Two-way contact sync is real work.</strong> The moment we own contact data, front-desk edits inside Momence become a reconciliation problem. The write-through + reconciliation-event policy in §4 must exist from day one or the two systems drift.</p>
+<p style="margin:0"><strong style="color:#E3B98C">The comms design needs a matching correction.</strong> Its "Momence is the CRM spine" framing is now wrong: Momence remains its <em>transaction</em> spine, but conversations key to person_id and client lookups hit our profile domain. One targeted revision, not a rewrite — flagged for the next pass on that document.</p></div></section>
+
+<p style="font-size:12.5px;line-height:1.7;color:#8A7B6B;margin:0">Awaiting approval of: (a) this inversion — THERAPY as system of record, Momence as replaceable transactional adapter; (b) the ten-domain data architecture; (c) the heavier Phase-0 foundation ahead of portal MVP; (d) authorising the matching correction to the Comms Layer Design.</p>
+</main></div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Open+Sans:wght@400;600;700&family=Marcellus&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#EEE5D2;-webkit-font-smoothing:antialiased}a{text-decoration:none;color:#7C5B38}a:hover{color:#4E361F}::selection{background:#9c7a57;color:#F2ECE3}</style>
+</helmet>
+<div style="font-family:'Open Sans',sans-serif;color:#31261D;background:linear-gradient(160deg,#EEE5D2 0%,#E1D3B4 55%,#D3C29A 100%);min-height:100vh">
+<header style="background:linear-gradient(150deg,#3A2A1B 0%,#241A11 55%,#140D07 100%);border-bottom:1px solid rgba(227,185,140,0.22);padding:22px 28px"><div style="max-width:1100px;margin:0 auto;display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap"><span style="font-family:'Marcellus',serif;letter-spacing:0.08em;color:#E3B98C;font-size:18px">THERAPY™</span><span style="font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#C7A876">Technical design · Client portal &amp; entitlements · For approval</span></div></header>
+
+<main style="max-width:1100px;margin:0 auto;padding:52px 28px 96px;display:flex;flex-direction:column;gap:36px">
+<div><div style="font-size:12px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8A7B6B;margin-bottom:10px">One identity · one governed data foundation · permissioned views</div>
+<h1 style="font-family:'Cormorant Garamond',serif;font-weight:500;font-size:clamp(34px,4.5vw,52px);line-height:1.02;margin:0;max-width:16em">Client Portal architecture — one portal, entitlement-unlocked.</h1>
+<p style="font-size:15px;line-height:1.7;color:#5F5347;margin:16px 0 0;max-width:48em">Nothing implemented. Audit of what exists, the entitlement model, data governance boundaries, Momence source-of-truth map, phased plan, and challenges to the brief. Companion to the <a href="Comms Layer Design.dc.html">Comms Layer Design</a> — they share one backend.</p></div>
+
+<section style="background:#FCF7EF;border:1px solid rgba(49,38,29,0.12);border-radius:14px;padding:32px">
+<h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;margin:0 0 14px">1 · Audit — what the portal is today</h2>
+<div style="font-size:13.5px;line-height:1.8;color:#5F5347">
+<p style="margin:0 0 10px"><strong>Member Portal v3</strong> (this project) is a high-fidelity front-end prototype: dashboard, sessions, My Plan (cross-referenced strategies, at-home techniques), Devices &amp; Records (wearable connect cards, bloodwork/scan upload zones). <strong>There is no authentication system to map — none exists.</strong> No backend, no database, no client login on yourtherapy.au beyond Momence's own hosted member login.</p>
+<p style="margin:0 0 10px"><strong>What this means for the brief:</strong> "evolve the existing portal" = keep the v3 screens, UX language and information design (they already answer the four first-screen questions: upcoming, progress, next step, membership — see §7). What gets built new is everything beneath: identity, entitlements, data stores. That's not a rebuild — the prototype was always the specification for this.</p>
+<p style="margin:0"><strong>Retain:</strong> all v3 screens (re-skinned by entitlement, not forked), the bronze design language, Momence as commerce spine, the Integration Checklist's backend stack (same Postgres/auth/audit foundation serves portal + comms layer — build once). <strong>Refactor:</strong> v3's implicit "member-only" framing becomes the entitlement-gated view of the one portal.</p></div></section>
+
+<section style="background:linear-gradient(160deg,#43342A 0%,#241A11 70%,#160E07 100%);color:#E6DFD4;border:1px solid rgba(227,185,140,0.3);border-radius:14px;padding:32px">
+<h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;margin:0 0 16px;color:#F5EDE1">2 · The entitlement model (core of the design)</h2>
+<div style="font-size:13.5px;line-height:1.8;color:#E6DFD4">
+<p style="margin:0 0 14px">One <strong style="color:#E3B98C">account</strong> (created at first visit, keyed to Momence customer ID). One <strong style="color:#E3B98C">entitlements table</strong>: account_id → entitlement key → source → granted_at → expires_at. Features check entitlement keys — never "is this person a member". Membership tiers, corporate deals, Seasons access, comp upgrades, trials: all just rows. Momence membership webhooks grant/revoke member entitlements automatically; staff can grant manually (audited).</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px">
+<div style="border:1px solid rgba(227,185,140,0.35);border-radius:10px;padding:16px"><div style="font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#E3B98C;margin-bottom:8px">portal.base — every client</div><div style="font-size:12.5px;line-height:1.7;color:#E6DFD4">Profile · book / upcoming / history · forms &amp; consents · documents · comms preferences · clinician-shared notes &amp; follow-ups · programs · notifications · membership info + join path</div></div>
+<div style="border:1px solid rgba(227,185,140,0.35);border-radius:10px;padding:16px"><div style="font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#E3B98C;margin-bottom:8px">member.core — any tier</div><div style="font-size:12.5px;line-height:1.7;color:#E6DFD4">Tier + inclusions · credits used/remaining · member booking · benefits &amp; events · progress dashboard · goals &amp; check-ins · member content/offers</div></div>
+<div style="border:1px solid rgba(227,185,140,0.35);border-radius:10px;padding:16px"><div style="font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#E3B98C;margin-bottom:8px">tier / feature keys</div><div style="font-size:12.5px;line-height:1.7;color:#E6DFD4">insights.wearables · insights.biomarkers · insights.trends · insights.nervous-system · ai.recommendations — granted per tier (L1–L4 today), reconfigurable without code changes</div></div>
+<div style="border:1px solid rgba(227,185,140,0.35);border-radius:10px;padding:16px"><div style="font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#E3B98C;margin-bottom:8px">seasons.* — future</div><div style="font-size:12.5px;line-height:1.7;color:#E6DFD4">Seasons is another entitlement namespace on the same identity — a different interface, not a different account</div></div>
+</div></div></section>
+
+<section style="background:#FCF7EF;border:1px solid rgba(49,38,29,0.12);border-radius:14px;padding:32px">
+<h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;margin:0 0 14px">3 · Longitudinal data &amp; the internal/client boundary</h2>
+<div style="font-size:13.5px;line-height:1.8;color:#5F5347">
+<p style="margin:0 0 12px">History starts at <strong>first consented interaction</strong>, not at membership purchase. The record spine: account → records (typed: appointment, form, consent, document, metric, note, assessment) → each record carries <strong>provenance</strong> (source, author, date) and a <strong>visibility flag</strong>. Membership never creates data — it unlocks richer <em>views</em> over data that was accumulating all along.</p>
+<p style="margin:0 0 12px"><strong>Two views, one store.</strong> Internal clinical view (notes, observations, assessments, risks, clinician tasks) is visible only to authorised clinical roles. Client-facing view shows only records whose type is client-safe by governance rule AND, for anything clinical, has been <strong>explicitly clinician-approved for sharing</strong> — publication is an act, not a default. Nothing becomes client-visible because it exists.</p>
+<p style="margin:0"><strong>Wearables</strong> write normalised metrics into this same store (per the Integration Checklist schema) — never a side silo. Recommended first integration: <strong>Oura via aggregator</strong> — best data quality for THERAPY's nervous-system positioning (HRV, readiness, temperature), server-side sync (unlike Apple Health), fastest approval (unlike Garmin), and the likeliest device among your early members. Apple Health second once the iOS-shell question is decided.</p></div></section>
+
+<section style="background:#FCF7EF;border:1px solid rgba(49,38,29,0.12);border-radius:14px;padding:32px">
+<h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;margin:0 0 14px">4 · Source-of-truth map (Momence's role)</h2>
+<div style="display:grid;gap:0;font-size:13.5px">
+<div style="display:grid;grid-template-columns:210px 1fr;gap:14px;padding:10px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong>Clients / identity</strong><span style="color:#5F5347">Momence (customer record) — portal account references it, never duplicates name/contact editing</span></div>
+<div style="display:grid;grid-template-columns:210px 1fr;gap:14px;padding:10px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong>Appointments &amp; bookings</strong><span style="color:#5F5347">Momence — portal reads via API/webhooks; booking actions go to Momence flows</span></div>
+<div style="display:grid;grid-template-columns:210px 1fr;gap:14px;padding:10px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong>Memberships &amp; payments</strong><span style="color:#5F5347">Momence — tier + status webhooks drive entitlement grants; money never touches our stack</span></div>
+<div style="display:grid;grid-template-columns:210px 1fr;gap:14px;padding:10px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong>Membership entitlements</strong><span style="color:#5F5347"><strong>Ours</strong> — Momence knows the product purchased; only our entitlement table knows what it unlocks</span></div>
+<div style="display:grid;grid-template-columns:210px 1fr;gap:14px;padding:10px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong>Forms &amp; consents</strong><span style="color:#5F5347"><strong>Ours</strong> — health consent needs versioning, audit and granularity Momence isn't built for (intake forms may stay in Momence short-term)</span></div>
+<div style="display:grid;grid-template-columns:210px 1fr;gap:14px;padding:10px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong>Clinical / session notes</strong><span style="color:#5F5347"><strong>Ours</strong> (governed health store) — never in Momence, never in the comms store</span></div>
+<div style="display:grid;grid-template-columns:210px 1fr;gap:14px;padding:10px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong>Communications</strong><span style="color:#5F5347"><strong>Ours</strong> — the comms layer's conversation store (per companion design)</span></div>
+<div style="display:grid;grid-template-columns:210px 1fr;gap:14px;padding:10px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong>Longitudinal health data</strong><span style="color:#5F5347"><strong>Ours</strong> — the governed record spine in §3; Momence data flows in as read-only provenance-tagged records</span></div>
+</div>
+<p style="font-size:13px;line-height:1.7;color:#5F5347;margin:14px 0 0">Rule: each fact lives in exactly one system; everything else holds references. Momence API capability (OAuth2, members/appointments endpoints, webhooks via Zapier or native) was verified in the comms design — the same sandbox test covers both projects.</p></section>
+
+<section style="background:#FCF7EF;border:1px solid rgba(49,38,29,0.12);border-radius:14px;padding:32px">
+<h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;margin:0 0 14px">5 · Seasons boundary</h2>
+<div style="font-size:13.5px;line-height:1.8;color:#5F5347">
+<p style="margin:0 0 10px"><strong>Shared:</strong> identity (one login), wearable connections (one OAuth per device, consumed by both), and consented summary-level history where the client explicitly opts in.</p>
+<p style="margin:0"><strong>Separated — deliberately:</strong> THERAPY clinical records stay under the clinic entity (AHPRA/clinical governance); Seasons should hold its own product data under its own privacy policy. If Seasons is (or becomes) a separate legal entity, cross-entity data flow needs its own consent event and a data-sharing agreement — design the API boundary now, share nothing by default. Do not pre-merge databases in anticipation.</p></div></section>
+
+<section style="background:#FCF7EF;border:1px solid rgba(49,38,29,0.12);border-radius:14px;padding:32px">
+<h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;margin:0 0 14px">6 · Security, governance &amp; items needing specialist confirmation</h2>
+<div style="font-size:13.5px;line-height:1.8;color:#5F5347">
+<p style="margin:0 0 10px">Same stack as the comms design (RBAC, least privilege, encryption, AU residency, immutable audit + access logging, consent ledger, retention controls) — one implementation serves both. Staff portal is a different permission set on the same infrastructure; clinical roles scoped to assigned clients; every sensitive read logged.</p>
+<p style="margin:0"><strong>Needs legal/specialist confirmation before build:</strong> whether the record store constitutes a "health record" under Victorian Health Records Act (almost certainly yes → HPP obligations); APP 11 security requirements for health information; retention minimums for clinical notes (7 years+ in VIC, longer for minors); whether AI-derived insights are themselves health records; My Health Record interaction (likely none, confirm); Seasons entity structure.</p></div></section>
+
+<section style="background:#FCF7EF;border:1px solid rgba(49,38,29,0.12);border-radius:14px;padding:32px">
+<h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;margin:0 0 16px">7 · Phases &amp; MVP</h2>
+<div style="display:grid;gap:0;font-size:13.5px">
+<div style="display:grid;grid-template-columns:110px 1fr;gap:14px;padding:12px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong style="color:#7C5B38">Phase 1<br>(MVP, ~6–8 wks)</strong><span style="color:#5F5347;line-height:1.7">Auth (email magic-link) + account keyed to Momence ID · entitlement table with portal.base / member.core · portal home answering the four questions (upcoming — Momence read; membership — tier + credits; next step — clinician follow-up as simple text; progress — placeholder tile) · become-a-member path (deep link to Momence) · consent ledger from day one. <em>Smallest useful:</em> a client logs in and sees their real appointments and membership — that alone beats the status quo.</span></div>
+<div style="display:grid;grid-template-columns:110px 1fr;gap:14px;padding:12px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong style="color:#7C5B38">Phase 2</strong><span style="color:#5F5347;line-height:1.7">Forms &amp; consents in-portal · documents · clinician-approved sharing workflow (the publication act) · goals &amp; check-ins · first wearable (Oura via aggregator) behind insights.wearables · tier-differentiated entitlements · staff hub gains the clinical internal view.</span></div>
+<div style="display:grid;grid-template-columns:110px 1fr;gap:14px;padding:12px 0;border-top:1px solid rgba(49,38,29,0.1)"><strong style="color:#7C5B38">Future</strong><span style="color:#5F5347;line-height:1.7">Biomarker trends · nervous-system progress views · AI recommendations (clinician-approved before display) · corporate entitlements · Seasons namespace · remaining wearables.</span></div>
+</div></section>
+
+<section style="background:linear-gradient(150deg,#5C452F 0%,#33261A 55%,#160E07 100%);color:#F2ECE3;border-radius:14px;padding:32px">
+<h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;margin:0 0 14px;color:#F5EDE1">8 · Where I challenge the brief</h2>
+<div style="font-size:13.5px;line-height:1.85;color:#E6DFD4">
+<p style="margin:0 0 12px"><strong style="color:#E3B98C">The base-portal feature list is too big for "base".</strong> Seventeen features for every casual client is practice-management-software energy — the opposite of §10's calm brief. Phase-1 base portal should be five things done beautifully: upcoming, book, history, profile, membership path. Forms/documents/programs arrive in Phase 2 when the sharing workflow exists.</p>
+<p style="margin:0 0 12px"><strong style="color:#E3B98C">"Basic progress information" for non-members is a trap.</strong> Progress requires interpreted data, which requires the clinician-approval workflow. Shipping a thin version early creates clinical-governance exposure for zero retention value. Give non-members follow-up recommendations (text a clinician wrote) — call nothing "progress" until the governed pipeline exists.</p>
+<p style="margin:0 0 12px"><strong style="color:#E3B98C">Don't build forms twice.</strong> If Momence intake forms are adequate today, keep them there for Phase 1 and migrate when the consent ledger ships — building our forms engine in parallel with Momence's is exactly the double-handling the brief warns against.</p>
+<p style="margin:0 0 12px"><strong style="color:#E3B98C">Entitlement flexibility has a cost.</strong> A fully generic entitlement engine invites configuration sprawl (fifty micro-flags nobody remembers). Constraint: entitlements are defined in one reviewed config file, grouped in bundles (base / member / tier-N), max ~15 keys until a real commercial need forces more.</p>
+<p style="margin:0"><strong style="color:#E3B98C">Sequencing conflict with the comms project:</strong> both designs need the same backend foundation. Build it once, portal-first or comms-first — but not as two teams in parallel inventing two account tables. My recommendation: foundation → portal MVP (identity + entitlements prove out) → comms layer plugs into it.</p>
+</div></section>
+
+<p style="font-size:12.5px;line-height:1.7;color:#8A7B6B;margin:0">Awaiting approval. Natural first decisions: (a) Phase-1 scope — the trimmed five-feature base portal vs the full brief list; (b) portal-first vs comms-first foundation sequencing; (c) engage the privacy specialist on the §6 confirmation list.</p>
+</main></div>
+</x-dc>
+</body>
+</html>
